@@ -3,7 +3,7 @@ ARP Watch is a Mac OSX tool for detecting changes in mac addresses. A common att
 
 ##How does it work?
 
-ARP Watch parses the output of the linx `arp` command. It uses this to build an in memory model of the current ARP entries, and every second will check if the IP has remained the same but the MAC address has changed. While this isn't a guarantee of malicious activity, it is one of the classic symptoms.
+ARP Watch parses the output of the linx `arp` command. It uses this to build an in memory model of the current ARP entries, and every few seconds it will check if the IP has remained the same but the MAC address has changed. While this isn't a guarantee of malicious activity, it is one of the classic symptoms.
 
 ##Usage
 
