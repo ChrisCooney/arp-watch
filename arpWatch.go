@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"github.com/fatih/color"
 
 )
 
@@ -21,7 +22,7 @@ func main() {
 }
 
 func enableDetection() {
-	fmt.Println("Listening for ARP changes...")
+	color.Red("Listening for ARP changes...")
 	entries := getCurrentEntries()
 	for {
 		currentEntries := getCurrentEntries()
@@ -51,11 +52,15 @@ func detectChanges(oldEntries []*ArpEntry, newEntries[]*ArpEntry)  {
 		matchedEntry := getMatchingEntry(entry, newEntries)
 
 		if matchedEntry != nil {
-			if matchedEntry.MacAddress != entry.MacAddress {
+			if entryHasChanged(entry, matchedEntry) {
 				tellTheUser(entry, matchedEntry)
 			}
 		}
 	}
+}
+
+func entryHasChanged(oldEntry *ArpEntry, newEntry *ArpEntry) bool {
+	return oldEntry.MacAddress != newEntry.MacAddress && newEntry.MacAddress != "(incomplete)" && oldEntry.MacAddress != "(incomplete)"
 }
 
 func tellTheUser(entry *ArpEntry, matchedEntry *ArpEntry) {
