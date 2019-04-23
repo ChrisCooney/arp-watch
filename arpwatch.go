@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
 	"time"
-	"github.com/fatih/color"
-
+	"flag"
 )
 
 type ArpEntry struct {
@@ -15,20 +15,29 @@ type ArpEntry struct {
 	MacAddress string
 }
 
+var outFile string
+var quiet bool
+func init() {
+	flag.StringVar(&outFile, "outfile", "", "file to write logs to")
+	flag.BoolVar(&quiet, "quiet", false, "supress output")
+}
 
 
 func main() {
+	flag.Parse()
 	enableDetection()
 }
 
 func enableDetection() {
-	color.Red("Listening for ARP changes...")
+	if quiet != true {
+		fmt.Println("Listening for ARP changes...")
+	}
 	entries := getCurrentEntries()
 	for {
 		currentEntries := getCurrentEntries()
 		detectChanges(entries, currentEntries)
 		entries = currentEntries
-		time.Sleep(5000 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 	}
 }
 
@@ -53,7 +62,9 @@ func detectChanges(oldEntries []*ArpEntry, newEntries[]*ArpEntry)  {
 
 		if matchedEntry != nil {
 			if entryHasChanged(entry, matchedEntry) {
-				tellTheUser(entry, matchedEntry)
+				t := time.Now()
+				changeTime := t.Format(time.RFC3339)
+				tellTheUser(entry, matchedEntry, changeTime)
 			}
 		}
 	}
@@ -63,9 +74,38 @@ func entryHasChanged(oldEntry *ArpEntry, newEntry *ArpEntry) bool {
 	return oldEntry.MacAddress != newEntry.MacAddress && newEntry.MacAddress != "(incomplete)" && oldEntry.MacAddress != "(incomplete)"
 }
 
-func tellTheUser(entry *ArpEntry, matchedEntry *ArpEntry) {
-	fmt.Println("Mac address change detected for same IP Address")
-	fmt.Printf("IP[%s] - %s => %s\n", matchedEntry.IpAddress, entry.MacAddress, matchedEntry.MacAddress)
+func isError(err error) bool {
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	return (err != nil)
+}
+
+func tellTheUser(entry *ArpEntry, matchedEntry *ArpEntry, timeValue string) {
+	if quiet != true { 
+		fmt.Println("Mac address change detected for same IP Address")
+		fmt.Printf("IP[%s] - %s => %s\n", matchedEntry.IpAddress, entry.MacAddress, matchedEntry.MacAddress)
+	}
+	if outFile != "" {
+		fileName := outFile
+		if _, err := os.Stat(fileName); os.IsNotExist(err) {
+			var file, err = os.Create(fileName)
+			if isError(err) { return }
+			defer file.Close()
+		}
+		text := "timeStamp=" + timeValue + " ip=" + matchedEntry.IpAddress + " oldMac=" + entry.MacAddress + " newMac=" + matchedEntry.MacAddress + " Message='MAC address change detected'\n"
+		f, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0600)
+		if err != nil {
+			panic(err)
+		}
+
+		defer f.Close()
+
+		if _, err = f.WriteString(text); err != nil {
+			panic(err)
+		}
+	}
 }
 
 func getMatchingEntry(entry *ArpEntry, entries []*ArpEntry) *ArpEntry {
@@ -106,6 +146,3 @@ func mapLinesToObjects(lines []string) []*ArpEntry {
 func splitOutputIntoArray(arpOutput string) []string {
 	return strings.Split(arpOutput, "[ethernet]")
 }
-
-
-
