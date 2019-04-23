@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 	"flag"
+	"io/ioutil"
+	"runtime"
 )
 
 type ArpEntry struct {
@@ -42,14 +44,22 @@ func enableDetection() {
 }
 
 func getCurrentEntries() []*ArpEntry {
-	cmd := exec.Command("arp", "-a")
-	output, err := cmd.CombinedOutput()
-
-	if err != nil {
-		panic(err)
+	if runtime.GOOS == "linux" {
+		b, err := ioutil.ReadFile("/proc/net/arp")
+		if err != nil {
+			panic(err)
+		}
+		output := string(b)
+		return parseArpTable(output)
+	} else {
+		cmd := exec.Command("arp", "-a")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			panic(err)
+		}
+		return parseArpTable(string(output))
 	}
 
-	return parseArpTable(string(output))
 }
 
 func detectChanges(oldEntries []*ArpEntry, newEntries[]*ArpEntry)  {
@@ -125,10 +135,15 @@ func parseArpTable(arpOutput string) []*ArpEntry {
 }
 
 func mapLinesToObjects(lines []string) []*ArpEntry {
-
-	regex := regexp.MustCompile(`(\d+.\d+.\d+.\d+).* at (.*) on`)
-
 	var entries = []*ArpEntry{}
+	var regex *regexp.Regexp
+
+	if runtime.GOOS == "darwin" {
+		regex = regexp.MustCompile(`(\d+.\d+.\d+.\d+).* at (.*) on`)
+
+	} else {
+		regex = regexp.MustCompile(`(\d+.\d+.\d+.\d+).* ([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})`)
+	}
 
 	for _,line := range lines {
 		values := regex.FindStringSubmatch(line)
@@ -136,13 +151,19 @@ func mapLinesToObjects(lines []string) []*ArpEntry {
 			entry := new(ArpEntry)
 			entry.IpAddress = values[1]
 			entry.MacAddress = values[2]
+
 			entries = append(entries, entry)
 		}
 	}
-
 	return entries
 }
 
 func splitOutputIntoArray(arpOutput string) []string {
-	return strings.Split(arpOutput, "[ethernet]")
+	var stringArray []string
+	if runtime.GOOS == "darwin" {
+		stringArray = strings.Split(arpOutput, "[ethernet]")
+	} else {
+		stringArray = strings.Split(arpOutput, " \n")
+	}
+	return stringArray
 }
