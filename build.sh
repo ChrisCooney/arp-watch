@@ -12,6 +12,12 @@ do
 	for ARCH in "${ALL_ARCH[@]}"
 	do
 		OUTFILE="arpwatch-$OS-$ARCH"
-		env GOOS="$OS" go build -o "$DIST_DIR"/"$OUTFILE" arpwatch.go
+		if [[ "$OS" == "windows" ]]
+		then
+			OUTFILE="$OUTFILE".exe
+		fi
+		export GOOS="$OS"
+		export GOARCH="$ARCH"
+		go build -o "$DIST_DIR"/"$OUTFILE" arpwatch.go
 	done
 done
