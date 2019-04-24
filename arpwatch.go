@@ -1,29 +1,29 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
-	"flag"
-	"io/ioutil"
-	"runtime"
 )
 
 type ArpEntry struct {
-	IpAddress string
+	IpAddress  string
 	MacAddress string
 }
 
 var outFile string
 var quiet bool
+
 func init() {
 	flag.StringVar(&outFile, "outfile", "", "file to write logs to")
 	flag.BoolVar(&quiet, "quiet", false, "supress output")
 }
-
 
 func main() {
 	flag.Parse()
@@ -62,12 +62,12 @@ func getCurrentEntries() []*ArpEntry {
 
 }
 
-func detectChanges(oldEntries []*ArpEntry, newEntries[]*ArpEntry)  {
+func detectChanges(oldEntries []*ArpEntry, newEntries []*ArpEntry) {
 	if oldEntries == nil {
 		return
 	}
 
-	for _,entry := range oldEntries {
+	for _, entry := range oldEntries {
 		matchedEntry := getMatchingEntry(entry, newEntries)
 
 		if matchedEntry != nil {
@@ -93,7 +93,7 @@ func isError(err error) bool {
 }
 
 func tellTheUser(entry *ArpEntry, matchedEntry *ArpEntry, timeValue string) {
-	if quiet != true { 
+	if quiet != true {
 		fmt.Println("Mac address change detected for same IP Address")
 		fmt.Printf("IP[%s] - %s => %s\n", matchedEntry.IpAddress, entry.MacAddress, matchedEntry.MacAddress)
 	}
@@ -101,7 +101,9 @@ func tellTheUser(entry *ArpEntry, matchedEntry *ArpEntry, timeValue string) {
 		fileName := outFile
 		if _, err := os.Stat(fileName); os.IsNotExist(err) {
 			var file, err = os.Create(fileName)
-			if isError(err) { return }
+			if isError(err) {
+				return
+			}
 			defer file.Close()
 		}
 		text := "timeStamp=" + timeValue + " ip=" + matchedEntry.IpAddress + " oldMac=" + entry.MacAddress + " newMac=" + matchedEntry.MacAddress + " Message='MAC address change detected'\n"
@@ -119,7 +121,7 @@ func tellTheUser(entry *ArpEntry, matchedEntry *ArpEntry, timeValue string) {
 }
 
 func getMatchingEntry(entry *ArpEntry, entries []*ArpEntry) *ArpEntry {
-	for _,potentialMatch := range entries {
+	for _, potentialMatch := range entries {
 		if potentialMatch.IpAddress == entry.IpAddress {
 			return potentialMatch
 		}
@@ -142,10 +144,10 @@ func mapLinesToObjects(lines []string) []*ArpEntry {
 		regex = regexp.MustCompile(`(\d+.\d+.\d+.\d+).* at (.*) on`)
 
 	} else {
-		regex = regexp.MustCompile(`(\d+.\d+.\d+.\d+).* ([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})`)
+		regex = regexp.MustCompile(`(\d+.\d+.\d+.\d+).*([0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2})`)
 	}
 
-	for _,line := range lines {
+	for _, line := range lines {
 		values := regex.FindStringSubmatch(line)
 		if len(values) > 0 {
 			entry := new(ArpEntry)
@@ -165,5 +167,6 @@ func splitOutputIntoArray(arpOutput string) []string {
 	} else {
 		stringArray = strings.Split(arpOutput, " \n")
 	}
+
 	return stringArray
 }
