@@ -21,3 +21,14 @@ do
 		go build -o "$DIST_DIR"/"$OUTFILE" arpwatch.go
 	done
 done
+
+#arm building
+ALL_ARM=(5 6 7)
+for ARM in "${ALL_ARM[@]}"
+do
+	export GOOS="linux"
+	export GOARCH="arm"
+	export GOARM="$ARM"
+	OUTFILE="arpwatch-$GOOS-${GOARCH}v$ARM"
+	go build -o "$DIST_DIR"/"$OUTFILE" arpwatch.go
+done
