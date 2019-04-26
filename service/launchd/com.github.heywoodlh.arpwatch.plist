@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-	<dict>
-		<key>Label</key>
-		<string>com.github.heywoodlh.arpwatch</string>
-		<key>Program</key>
+<dict>
+        <key>Label</key>
+        <string>com.github.heywoodlh.arpwatch</string>
+
+        <key>ProgramArguments</key>
+        <array>
 		<string>/usr/local/bin/arpwatch</string>
-		<string>--quiet=true</string>
 		<string>--outfile=/var/log/arpwatch.log</string>
-		<key>RunAtLoad</key>
-		<true/>
-	</dict>
+        </array>
+	
+	<key>RunAtLoad</key>
+	<true/>
+</dict>
 </plist>
