@@ -19,33 +19,43 @@ type ArpEntry struct {
 	MacAddress string
 }
 
+//general var initialization
+var version string = "1.0.4"
+var fileName string
+var timeStamp, ipAddress, oldMac, newMac string
+
+//var flag initialization
 var outFile string
 var quiet bool
 var rlogServer string
+var versionFlag bool
 
 func init() {
 	flag.StringVar(&outFile, "outfile", "", "file to write logs to")
 	flag.BoolVar(&quiet, "quiet", false, "supress output")
 	flag.StringVar(&rlogServer, "server", "", "remote server to log to (UDP)")
+	flag.BoolVar(&versionFlag, "version", false, "print version")
 }
+
 
 func main() {
 	flag.Parse()
-	enableDetection()
-}
-
-func enableDetection() {
+	if versionFlag == true {
+		fmt.Println("arpwatch-go", version)
+		os.Exit(0)
+	}
 	if quiet != true {
 		fmt.Println("Listening for ARP changes...")
 	}
 	entries := getCurrentEntries()
 	for {
 		currentEntries := getCurrentEntries()
-		detectChanges(entries, currentEntries)
+		detectAndAlertChanges(entries, currentEntries)
 		entries = currentEntries
 		time.Sleep(100 * time.Millisecond)
 	}
 }
+
 
 func getCurrentEntries() []*ArpEntry {
 	if runtime.GOOS == "linux" {
@@ -66,7 +76,7 @@ func getCurrentEntries() []*ArpEntry {
 
 }
 
-func detectChanges(oldEntries []*ArpEntry, newEntries []*ArpEntry) {
+func detectAndAlertChanges(oldEntries []*ArpEntry, newEntries []*ArpEntry) {
 	if oldEntries == nil {
 		return
 	}
@@ -75,25 +85,14 @@ func detectChanges(oldEntries []*ArpEntry, newEntries []*ArpEntry) {
 		matchedEntry := getMatchingEntry(entry, newEntries)
 
 		if matchedEntry != nil {
-			if entryHasChanged(entry, matchedEntry) {
+			var entryChange bool = entry.MacAddress != matchedEntry.MacAddress && matchedEntry.MacAddress != "(incomplete)" && entry.MacAddress != "(incomplete)"
+			if entryChange {
 				t := time.Now()
 				changeTime := t.Format(time.RFC3339)
 				tellTheUser(entry, matchedEntry, changeTime)
 			}
 		}
 	}
-}
-
-func entryHasChanged(oldEntry *ArpEntry, newEntry *ArpEntry) bool {
-	return oldEntry.MacAddress != newEntry.MacAddress && newEntry.MacAddress != "(incomplete)" && oldEntry.MacAddress != "(incomplete)"
-}
-
-func isError(err error) bool {
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-
-	return (err != nil)
 }
 
 func tellTheUser(entry *ArpEntry, matchedEntry *ArpEntry, timeValue string) {
@@ -162,8 +161,6 @@ func splitOutputIntoArray(arpOutput string) []string {
 	return stringArray
 }
 
-var fileName string
-var timeStamp, ipAddress, oldMac, newMac string
 
 
 func printToStdout(ipAddress string, oldMac string, newMac string) {
@@ -174,8 +171,8 @@ func printToStdout(ipAddress string, oldMac string, newMac string) {
 func logToFile(message string, fileName string) {
 	if _, err := os.Stat(fileName); os.IsNotExist(err) {
 		var file, err = os.Create(fileName)
-		if isError(err) {
-			return
+		if err != nil {
+			log.Fatal(err)
 		}
 		defer file.Close()
 	}

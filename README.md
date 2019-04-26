@@ -31,6 +31,8 @@ Usage of arpwatch:
         supress output
   -server string
         remote server to log to (UDP)
+  -version
+        print version
 ```
 
 Example command with all flags
