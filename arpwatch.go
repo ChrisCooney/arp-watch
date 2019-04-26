@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 	"log"
+	"log/syslog"
 )
 
 type ArpEntry struct {
@@ -25,7 +26,7 @@ var rlogServer string
 func init() {
 	flag.StringVar(&outFile, "outfile", "", "file to write logs to")
 	flag.BoolVar(&quiet, "quiet", false, "supress output")
-	flag.StringVar(&rlogServer, "server", "", "remote server to log to")
+	flag.StringVar(&rlogServer, "server", "", "remote server to log to (UDP)")
 }
 
 func main() {
@@ -100,8 +101,13 @@ func tellTheUser(entry *ArpEntry, matchedEntry *ArpEntry, timeValue string) {
 		printToStdout(matchedEntry.IpAddress, entry.MacAddress, matchedEntry.MacAddress)
 	}
 
+	text := "timeStamp=" + timeValue + " ip=" + matchedEntry.IpAddress + " oldMac=" + entry.MacAddress + " newMac=" + matchedEntry.MacAddress + " Message='MAC address change detected'"
 	if outFile != "" {
-		logToFile(outFile, timeValue, matchedEntry.IpAddress, entry.MacAddress, matchedEntry.MacAddress)
+		logToFile(text, outFile)
+	}
+
+	if rlogServer != "" {
+		logToRemote(text, rlogServer)
 	}
 }
 
@@ -159,12 +165,13 @@ func splitOutputIntoArray(arpOutput string) []string {
 var fileName string
 var timeStamp, ipAddress, oldMac, newMac string
 
+
 func printToStdout(ipAddress string, oldMac string, newMac string) {
 	fmt.Println("Mac address change detected for same IP Address")
 	fmt.Printf("IP[%s] - %s => %s\n", ipAddress, oldMac, newMac)
 }
 
-func logToFile(fileName string, timeStamp string, ipAddress string, oldMac string, newMac string) {
+func logToFile(message string, fileName string) {
 	if _, err := os.Stat(fileName); os.IsNotExist(err) {
 		var file, err = os.Create(fileName)
 		if isError(err) {
@@ -178,6 +185,15 @@ func logToFile(fileName string, timeStamp string, ipAddress string, oldMac strin
 	}
 	logger := log.New(file, "", log.LstdFlags|log.Lshortfile)
 
-	text := "timeStamp=" + timeStamp + " ip=" + ipAddress + " oldMac=" + oldMac + " newMac=" + newMac + " Message='MAC address change detected'"
-	logger.Println(text)
+	logger.Println(message)
+}
+
+func logToRemote(message string, rServer string) {
+	logWriter, err := syslog.Dial("udp", rServer, syslog.LOG_ERR, "arpwatch")
+	defer logWriter.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	logWriter.Write([]byte(message))
 }

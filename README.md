@@ -29,12 +29,14 @@ Usage of arpwatch:
         file to write logs to
   -quiet
         supress output
+  -server string
+        remote server to log to (UDP)
 ```
 
-I.E.
+Example command with all flags
 
 ```
-❯ arpwatch --outfile arp.log --quiet true
+❯ arpwatch --outfile arp.log --quiet true --server '192.168.1.50:514'
 ```
   
 
