@@ -97,26 +97,11 @@ func isError(err error) bool {
 
 func tellTheUser(entry *ArpEntry, matchedEntry *ArpEntry, timeValue string) {
 	if quiet != true {
-		fmt.Println("Mac address change detected for same IP Address")
-		fmt.Printf("IP[%s] - %s => %s\n", matchedEntry.IpAddress, entry.MacAddress, matchedEntry.MacAddress)
+		printToStdout(matchedEntry.IpAddress, entry.MacAddress, matchedEntry.MacAddress)
 	}
-	if outFile != "" {
-		fileName := outFile
-		if _, err := os.Stat(fileName); os.IsNotExist(err) {
-			var file, err = os.Create(fileName)
-			if isError(err) {
-				return
-			}
-			defer file.Close()
-		}
-		file, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0600)
-		if err != nil {
-			panic(err)
-		}
-		logger := log.New(file, "", log.LstdFlags|log.Lshortfile)
 
-		text := "timeStamp=" + timeValue + " ip=" + matchedEntry.IpAddress + " oldMac=" + entry.MacAddress + " newMac=" + matchedEntry.MacAddress + " Message='MAC address change detected'"
-		logger.Println(text)
+	if outFile != "" {
+		logToFile(outFile, timeValue, matchedEntry.IpAddress, entry.MacAddress, matchedEntry.MacAddress)
 	}
 }
 
@@ -169,4 +154,30 @@ func splitOutputIntoArray(arpOutput string) []string {
 	}
 
 	return stringArray
+}
+
+var fileName string
+var timeStamp, ipAddress, oldMac, newMac string
+
+func printToStdout(ipAddress string, oldMac string, newMac string) {
+	fmt.Println("Mac address change detected for same IP Address")
+	fmt.Printf("IP[%s] - %s => %s\n", ipAddress, oldMac, newMac)
+}
+
+func logToFile(fileName string, timeStamp string, ipAddress string, oldMac string, newMac string) {
+	if _, err := os.Stat(fileName); os.IsNotExist(err) {
+		var file, err = os.Create(fileName)
+		if isError(err) {
+			return
+		}
+		defer file.Close()
+	}
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		panic(err)
+	}
+	logger := log.New(file, "", log.LstdFlags|log.Lshortfile)
+
+	text := "timeStamp=" + timeStamp + " ip=" + ipAddress + " oldMac=" + oldMac + " newMac=" + newMac + " Message='MAC address change detected'"
+	logger.Println(text)
 }
