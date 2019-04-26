@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=arpwatch --quiet true --outfile /var/log/arpwatch.log
+ExecStart=/usr/local/bin/arpwatch --quiet true --outfile /var/log/arpwatch.log
 Restart=on-failure
 
 [Install]
