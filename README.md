@@ -36,7 +36,7 @@ Usage of arpwatch:
 Example command with all flags
 
 ```
-❯ arpwatch --outfile arp.log --quiet true --server '192.168.1.50:514'
+❯ arpwatch --outfile arp.log --quiet --server '192.168.1.50:514'
 ```
   
 
