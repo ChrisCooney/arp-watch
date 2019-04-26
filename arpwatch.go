@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	"log"
 )
 
 type ArpEntry struct {
@@ -19,10 +20,12 @@ type ArpEntry struct {
 
 var outFile string
 var quiet bool
+var rlogServer string
 
 func init() {
 	flag.StringVar(&outFile, "outfile", "", "file to write logs to")
 	flag.BoolVar(&quiet, "quiet", false, "supress output")
+	flag.StringVar(&rlogServer, "server", "", "remote server to log to")
 }
 
 func main() {
@@ -106,17 +109,14 @@ func tellTheUser(entry *ArpEntry, matchedEntry *ArpEntry, timeValue string) {
 			}
 			defer file.Close()
 		}
-		text := "timeStamp=" + timeValue + " ip=" + matchedEntry.IpAddress + " oldMac=" + entry.MacAddress + " newMac=" + matchedEntry.MacAddress + " Message='MAC address change detected'\n"
-		f, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0600)
+		file, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0600)
 		if err != nil {
 			panic(err)
 		}
+		logger := log.New(file, "", log.LstdFlags|log.Lshortfile)
 
-		defer f.Close()
-
-		if _, err = f.WriteString(text); err != nil {
-			panic(err)
-		}
+		text := "timeStamp=" + timeValue + " ip=" + matchedEntry.IpAddress + " oldMac=" + entry.MacAddress + " newMac=" + matchedEntry.MacAddress + " Message='MAC address change detected'"
+		logger.Println(text)
 	}
 }
 
