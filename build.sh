@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-ALL_OS=(darwin linux windows)
+ALL_OS=(darwin linux windows freebsd dragonfly netbsd openbsd)
 ALL_ARCH=(amd64 386 arm arm64)
 
 DIST_DIR='./dist'
