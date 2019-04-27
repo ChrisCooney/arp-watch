@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 	"log"
+	"./arpwatch_unix"
 )
 
 type ArpEntry struct {
@@ -26,6 +27,7 @@ var timeStamp, ipAddress, oldMac, newMac string
 //var flag initialization
 var outFile string
 var quiet bool
+var RlogServer string
 var versionFlag bool
 
 func init() {
@@ -102,6 +104,9 @@ func tellTheUser(entry *ArpEntry, matchedEntry *ArpEntry, timeValue string) {
 		logToFile(text, outFile)
 	}
 
+	if arpwatch_unix.RlogServer != "" {
+		arpwatch_unix.LogToRemote(text, arpwatch_unix.RlogServer)
+	}
 }
 
 func getMatchingEntry(entry *ArpEntry, entries []*ArpEntry) *ArpEntry {
@@ -178,4 +183,3 @@ func logToFile(message string, fileName string) {
 
 	logger.Println(message)
 }
-
