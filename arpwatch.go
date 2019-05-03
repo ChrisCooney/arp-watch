@@ -25,25 +25,26 @@ var fileName string
 var timeStamp, ipAddress, oldMac, newMac string
 
 //var flag initialization
-var outFile string
-var quiet bool
+var outFile = flag.String("outfile", "", "file to write logs to")
+var quiet = flag.Bool("quiet", false, "supress output")
 var RlogServer string
-var versionFlag bool
+var versionFlag = flag.Bool("version", false, "print version")
+
 
 func init() {
-	flag.StringVar(&outFile, "outfile", "", "file to write logs to")
-	flag.BoolVar(&quiet, "quiet", false, "supress output")
-	flag.BoolVar(&versionFlag, "version", false, "print version")
+	flag.StringVar(outFile, "o", "", "file to write logs to")
+	flag.BoolVar(quiet, "q", false, "supress output")
+	flag.BoolVar(versionFlag, "v", false, "print version")
 }
 
 
 func main() {
 	flag.Parse()
-	if versionFlag == true {
+	if *versionFlag == true {
 		fmt.Println("arpwatch-go", version)
 		os.Exit(0)
 	}
-	if quiet != true {
+	if *quiet != true {
 		fmt.Println("Listening for ARP changes...")
 	}
 	entries := getCurrentEntries()
@@ -95,13 +96,13 @@ func detectAndAlertChanges(oldEntries []*ArpEntry, newEntries []*ArpEntry) {
 }
 
 func tellTheUser(entry *ArpEntry, matchedEntry *ArpEntry, timeValue string) {
-	if quiet != true {
+	if *quiet != true {
 		printToStdout(matchedEntry.IpAddress, entry.MacAddress, matchedEntry.MacAddress)
 	}
 
 	text := "timeStamp=" + timeValue + " ip=" + matchedEntry.IpAddress + " oldMac=" + entry.MacAddress + " newMac=" + matchedEntry.MacAddress + " Message='MAC address change detected'"
-	if outFile != "" {
-		logToFile(text, outFile)
+	if *outFile != "" {
+		logToFile(text, *outFile)
 	}
 
 	if arpwatch_unix.RlogServer != "" {
