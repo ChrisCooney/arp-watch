@@ -15,5 +15,9 @@
 	<true/>
 	<key>KeepAlive</key>
 	<true/>
+	<key>StandardErrorPath</key>
+	<string>/tmp/arpwatch-go-error.log</string>
+	<key>StandardOutPath</key>
+	<string>/tmp/arpwatch-go.log</string>
 </dict>
 </plist>
