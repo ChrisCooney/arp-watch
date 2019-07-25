@@ -52,7 +52,7 @@ func main() {
 		currentEntries := getCurrentEntries()
 		detectAndAlertChanges(entries, currentEntries)
 		entries = currentEntries
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(5000 * time.Millisecond)
 	}
 }
 
