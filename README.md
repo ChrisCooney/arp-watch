@@ -3,7 +3,7 @@ ARPWatch-Go is a tool for detecting changes in mac addresses. A common attack th
 
 ## How does it work?
 
-On MacOS and Windows `arpwatch` parses the output of `arp -a` and on Linux it reads the contents of `/proc/net/arp`. It uses this to build an in memory model of the current ARP entries, and every few seconds it will check if the IP has remained the same but the MAC address has changed. While this isn't a guarantee of malicious activity, it is one of the classic symptoms.
+On MacOS and Windows `arpwatch` parses the output of `arp -a` and on Linux it reads the contents of `/proc/net/arp`. It uses this to build an in memory model of the current ARP entries, and every few seconds it will check if any MAC addresses have changed within the ARP table. While this isn't a guarantee of malicious activity, it is a great potential indicator.
 
 ## Usage
 
