@@ -64,7 +64,7 @@ func getCurrentEntries() []*ArpEntry {
 			panic(err)
 		}
 		output := string(b)
-		return parseArpTable(output)
+		return parseArpTable(string(output))
 	} else {
 		cmd := exec.Command("arp", "-a")
 		output, err := cmd.CombinedOutput()
