@@ -7,6 +7,8 @@ On MacOS and Windows `arpwatch` parses the output of `arp -a` and on Linux it re
 
 ## Usage
 
+![](example.gif)
+
 ### Installation
 
 Download the binary for your system from the [releases page](https://github.com/heywoodlh/arpwatch-go/releases).
