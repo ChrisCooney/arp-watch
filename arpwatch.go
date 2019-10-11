@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"regexp"
@@ -58,22 +57,12 @@ func main() {
 
 
 func getCurrentEntries() []*ArpEntry {
-	if runtime.GOOS == "linux" {
-		b, err := ioutil.ReadFile("/proc/net/arp")
-		if err != nil {
-			panic(err)
-		}
-		output := string(b)
-		return parseArpTable(string(output))
-	} else {
-		cmd := exec.Command("arp", "-a")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			panic(err)
-		}
-		return parseArpTable(string(output))
+	cmd := exec.Command("arp", "-a")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		panic(err)
 	}
-
+	return parseArpTable(string(output))
 }
 
 func detectAndAlertChanges(oldEntries []*ArpEntry, newEntries []*ArpEntry) {
@@ -130,11 +119,11 @@ func mapLinesToObjects(lines []string) []*ArpEntry {
 	var entries = []*ArpEntry{}
 	var regex *regexp.Regexp
 
-	if runtime.GOOS == "darwin" {
-		regex = regexp.MustCompile(`(\d+.\d+.\d+.\d+).* at (.*) on`)
+	if runtime.GOOS == "windows" {
+		regex = regexp.MustCompile(`(\d+.\d+.\d+.\d+).*([0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2})`)
 
 	} else {
-		regex = regexp.MustCompile(`(\d+.\d+.\d+.\d+).*([0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2})`)
+		regex = regexp.MustCompile(`(\d+.\d+.\d+.\d+).* at (.*) on`)
 	}
 
 	for _, line := range lines {
