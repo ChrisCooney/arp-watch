@@ -1,9 +1,13 @@
 # ARPWATCH-GO
 ARPWatch-Go is a tool for detecting changes in mac addresses. A common attack that takes place is known as an ARP cache poisoning attack. This attack tricks your machine into thinking that it is talking to the router, when it is really talking to a malicious third party.
 
+## Requirements:
+
+If on Linux, ensure that `arp` is installed and available within your $PATH. Not all Linux distributions come with `arp` preinstalled. Attempting to parse `/proc/net/arp` was a little too complicated (for my skillset), so it simplified things to have all platforms rely on the `arp` command.
+
 ## How does it work?
 
-On MacOS and Windows `arpwatch` parses the output of `arp -a` and on Linux it reads the contents of `/proc/net/arp`. It uses this to build an in memory model of the current ARP entries, and every few seconds it will check if any MAC addresses have changed within the ARP table. While this isn't a guarantee of malicious activity, it is a great potential indicator.
+Simply put, `arpwatch` parses the output of `arp -a`. It uses this to build an in memory model of the current ARP entries, and every few seconds it will check if any MAC addresses have changed within the ARP table. While this isn't a guarantee of malicious activity, it is a great potential indicator.
 
 ## Usage
 
