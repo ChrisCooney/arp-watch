@@ -5,6 +5,8 @@ ARPWatch-Go is a tool for detecting changes in mac addresses. A common attack th
 
 If on Linux, ensure that `arp` is installed and available within your $PATH. Not all Linux distributions come with `arp` preinstalled. Attempting to parse `/proc/net/arp` was a little too complicated (for my skillset), so it simplified things to have all platforms rely on the `arp` command.
 
+The original `arpwatch` tool works perfectly fine on Linux at the moment so adding code for Linux specifically (like parsing `/proc/net/arp` instead of using `arp -a`) isn't a huge priority.
+
 ## How does it work?
 
 Simply put, `arpwatch` parses the output of `arp -a`. It uses this to build an in memory model of the current ARP entries, and every few seconds it will check if any MAC addresses have changed within the ARP table. While this isn't a guarantee of malicious activity, it is a great potential indicator.
